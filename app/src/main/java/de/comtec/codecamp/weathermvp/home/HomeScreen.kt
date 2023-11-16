@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,9 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.comtec.codecamp.weathermvp.R
+import de.comtec.codecamp.weathermvp.data.model.Quote
 import eu.bambooapps.material3.pullrefresh.PullRefreshIndicator
 import eu.bambooapps.material3.pullrefresh.pullRefresh
 import eu.bambooapps.material3.pullrefresh.rememberPullRefreshState
+import java.time.LocalDateTime
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,14 +42,20 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
     val weather = viewModel.weatherData.collectAsState(initial = null).value
     val loading = viewModel.loading.value
     val hasNetwork = viewModel.internetAccess.collectAsState().value
+    val quoteInfo = viewModel.quoteInfo.value
+    val lastUpdateTime = viewModel.updateTime.value
 
     val pullRefreshState = rememberPullRefreshState(refreshing = loading, onRefresh = {
-        viewModel.fetchWeatherData()
+        if (hasNetwork) {
+            viewModel.fetchWeatherData()
+            viewModel.fetchQuote()
+        }
     })
 
     LaunchedEffect(key1 = hasNetwork, block = {
         if (hasNetwork) {
             viewModel.fetchWeatherData()
+            viewModel.fetchQuote()
         }
     })
 
@@ -62,14 +72,20 @@ fun HomeScreen(viewModel: HomeViewModel = hiltViewModel()) {
                 item {
                     NoNetwork()
                 }
+            } else {
+                item {
+                    TemperatureInfo(weather?.temperature)
+                }
+                item {
+                    PrecipitationInfo(weather?.precipitationProbability)
+                }
+                item {
+                    QuoteInfo(quoteInfo)
+                }
             }
             item {
-                TemperatureInfo(weather?.temperature)
+                TimeInfo(time = lastUpdateTime)
             }
-            item {
-                PrecipitationInfo(weather?.precipitationProbability)
-            }
-            // TODO add a composable to show last update time
         }
         PullRefreshIndicator(
             refreshing = loading,
@@ -133,6 +149,41 @@ fun PrecipitationInfo(precipitation: Double? = null) {
         ) {
             Text(text = "${precipitation ?: "-"}%", fontSize = 28.sp)
             Text(text = "Precipitation", fontSize = 12.sp)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun QuoteInfo(quoteInfo: Quote = Quote("Content", "Author")) {
+    Card {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = quoteInfo.content ?: "-", fontSize = 16.sp)
+            Text(text = quoteInfo.author ?: "-", fontSize = 12.sp)
+        }
+    }
+}
+
+@Composable
+fun TimeInfo(time: LocalDateTime? = null) {
+    Card{
+        Column(
+            modifier = Modifier
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.End
+        ) {
+            if (time != null) {
+                Text(text = "Last update: ${time.hour ?: "-"}:${time.minute ?: "-"}", fontSize = 12.sp)
+            } else {
+                Text(text = "Last update: never", fontSize = 12.sp)
+            }
         }
     }
 }

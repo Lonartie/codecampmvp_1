@@ -43,8 +43,11 @@ object RepoModule {
                 )
             ).build()
 
-        val quotesRetrofit = Retrofit.Builder().baseUrl("https://api.quotable.io/")
-            .addConverterFactory(MoshiConverterFactory.create()).build()
+        val quotesRetrofit = Retrofit.Builder().baseUrl("https://api.quotable.io/").addConverterFactory(
+                MoshiConverterFactory.create(
+                    Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+                )
+            ).build()
 
         return RetroFitHolder(weatherRetrofit, quotesRetrofit)
     }
