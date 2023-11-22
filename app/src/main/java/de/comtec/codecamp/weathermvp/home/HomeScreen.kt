@@ -172,7 +172,7 @@ fun QuoteInfo(quoteInfo: Quote = Quote("Content", "Author")) {
 
 @Composable
 fun TimeInfo(time: LocalDateTime? = null) {
-    Card{
+    Card {
         Column(
             modifier = Modifier
                 .padding(16.dp),
@@ -180,7 +180,13 @@ fun TimeInfo(time: LocalDateTime? = null) {
             horizontalAlignment = Alignment.End
         ) {
             if (time != null) {
-                Text(text = "Last update: ${time.hour ?: "-"}:${time.minute ?: "-"}", fontSize = 12.sp)
+                val hour = time.hour
+                val minute = time.minute
+                var hourString = hour.toString()
+                var minuteString = minute.toString()
+                if (hourString.length < 2) hourString = "0$hourString"
+                if (minuteString.length < 2) minuteString = "0$minuteString"
+                Text(text = "Last update: ${hourString ?: "-"}:${minuteString ?: "-"}", fontSize = 12.sp)
             } else {
                 Text(text = "Last update: never", fontSize = 12.sp)
             }
